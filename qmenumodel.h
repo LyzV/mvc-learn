@@ -2,6 +2,7 @@
 #define QMENUMODEL_H
 
 #include <QAbstractItemModel>
+#include <QString>
 #include <QVariant>
 #include <QList>
 #include <QTimer>
@@ -10,8 +11,16 @@ class QMenuModel : public QAbstractItemModel
 {
     Q_OBJECT
 
-    QList<QVariant> slist;
+    typedef struct
+    {
+        QString Name;
+        QVariant Value;
+        QString Unit;
+    } SMenuStr;
+
+    QList<SMenuStr> slist;
     QTimer *timer=nullptr;
+
 public:
     QMenuModel(QObject *parent = 0);
 private slots:

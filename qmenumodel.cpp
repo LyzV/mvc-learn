@@ -3,11 +3,19 @@
 QMenuModel::QMenuModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
-    slist.append(QVariant(1.0f));
-    slist.append(QVariant(2.1));
-    slist.append(QVariant(3));
-    slist.append(QVariant(-4.868765));
-    slist.append(QVariant(+1.5E3));
+    SMenuStr mstr;
+
+    mstr.Name="First"; mstr.Value=QVariant(1.0f); mstr.Unit="MPa"; slist.append(mstr);
+    mstr.Name="Second"; mstr.Value=QVariant(2.1f); mstr.Unit="KPa"; slist.append(mstr);
+    mstr.Name="Third"; mstr.Value=QVariant(3); mstr.Unit="At"; slist.append(mstr);
+    mstr.Name="Forth"; mstr.Value=QVariant(-4.934857); mstr.Unit="Atm"; slist.append(mstr);
+    mstr.Name="Fifth"; mstr.Value=QVariant(+1.534E2); mstr.Unit="psi"; slist.append(mstr);
+
+//    QModelIndex topLeft=index(0, 0);
+//    QModelIndex bottomRight=index(slist.count()-1, 2);
+//    QVector<int> roles;
+//    roles.append((int)Qt::DisplayRole);
+//    emit dataChanged(topLeft, bottomRight, roles);
 
     timer=new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(Timeout()));
@@ -18,17 +26,17 @@ void QMenuModel::Timeout()
 {
     for(int i=0; i<slist.count(); ++i)
     {
-        QMetaType::Type t=(QMetaType::Type)slist[i].type();
+        QMetaType::Type t=(QMetaType::Type)slist[i].Value.type();
         switch(t)
         {
         default: break;
-        case QMetaType::Int: slist[i]=slist.at(i).toInt()+1; break;
-        case QMetaType::Float: slist[i]=slist.at(i).toFloat()+1.0; break;
-        case QMetaType::Double: slist[i]=slist.at(i).toDouble()+1.0; break;
+        case QMetaType::Int: slist[i].Value=slist.at(i).Value.toInt()+1; break;
+        case QMetaType::Float: slist[i].Value=slist.at(i).Value.toFloat()+1.0; break;
+        case QMetaType::Double: slist[i].Value=slist.at(i).Value.toDouble()+1.0; break;
         }
     }
-    QModelIndex topLeft=index(0, 0);
-    QModelIndex bottomRight=index(slist.count()-1, 0);
+    QModelIndex topLeft=index(0, 1);
+    QModelIndex bottomRight=index(slist.count()-1, 1);
     QVector<int> roles;
     roles.append((int)Qt::DisplayRole);
     emit dataChanged(topLeft, bottomRight, roles);
@@ -39,9 +47,9 @@ QModelIndex QMenuModel::index(int row, int column, const QModelIndex &parent) co
 {
     Q_UNUSED(parent);
 
-    if(0!=column) return QModelIndex();
+    if(3<=column) return QModelIndex();
     if(row>=slist.count()) return QModelIndex();
-    return this->createIndex(row, 0, row);
+    return this->createIndex(row, column, row);
 }
 
 QModelIndex QMenuModel::parent(const QModelIndex &child) const
@@ -59,21 +67,41 @@ int QMenuModel::rowCount(const QModelIndex &parent) const
 int QMenuModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 1;
+    return 3;
 }
 
 QVariant QMenuModel::data(const QModelIndex &index, int role) const
 {
     if(false==index.isValid())
         return QVariant();
-    if(0!=index.column())
-        return QVariant();
     if(slist.count()<=index.row())
         return QVariant();
 
-    switch(role)
+    if(0==index.column())
     {
-    default: return QVariant();
-    case Qt::DisplayRole: return slist[index.row()].toString();
+        switch(role)
+        {
+        default: return QVariant();
+        case Qt::DisplayRole: return slist[index.row()].Name;
+        }
     }
+    else if(1==index.column())
+    {
+        switch(role)
+        {
+        default: return QVariant();
+        case Qt::DisplayRole: return slist[index.row()].Value.toString();
+        }
+    }
+    else if(2==index.column())
+    {
+        switch(role)
+        {
+        default: return QVariant();
+        case Qt::DisplayRole: return slist[index.row()].Unit;
+        }
+    }
+    else
+        return QVariant();
+
 }
